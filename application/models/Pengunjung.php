@@ -18,6 +18,14 @@ class Pengunjung extends CI_Model
         return $this->db->get()->result();
     }
 
+
+    function countPengunjung()
+    {
+        $this->db->select('count(id) as total_pengunjung');
+        $this->db->from('pengunjung');
+        return $this->db->get()->result();
+    }
+
     public function addData($data)
     {
         $this->db->insert('pengunjung', $data);

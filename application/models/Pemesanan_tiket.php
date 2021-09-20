@@ -6,9 +6,45 @@ class Pemesanan_tiket extends CI_Model
 
     public function getAllData()
     {
-        $this->datatables->select('id,kode_tiket,tanggal,jml_tiket,status,bukti_bayar,username,username');
+        $this->datatables->select('id,kode_tiket,jenis_pemesanan,tanggal,jml_tiket,status,bukti_bayar,jenis_akun,username,username');
         $this->datatables->from('pemesanan_tiket');
         return $this->datatables->generate();
+    }
+
+    public function getAllData1($bulan)
+    {
+        $this->db->select('*');
+        $this->db->from('pemesanan_tiket');
+        $this->db->where('MONTH(tanggal) ', $bulan);
+        $this->db->order_by('id', 'desc');
+        return $this->db->get()->result();
+    }
+
+    function visualisasiPemasukan()
+    {
+        $this->db->select('count(id) as total, sum(jumlah_bayar) as tot, MONTH(tanggal) as bulan');
+        $this->db->from('pemesanan_tiket');
+        $this->db->group_by('MONTH(tanggal)');
+        $this->db->where('YEAR(tanggal)', date('Y'));
+        $this->db->order_by('MONTH(tanggal)', 'asc');
+        return $this->db->get()->result();
+    }
+
+    function countTransaksi($status)
+    {
+        $this->db->select('count(id) as total');
+        $this->db->from('pemesanan_tiket');
+        $this->db->where('status', $status);
+        return $this->db->get()->result();
+    }
+
+
+    public function total($bulan)
+    {
+        $this->db->select('sum(jumlah_bayar) as total_keseluruhan');
+        $this->db->from('pemesanan_tiket');
+        $this->db->where('MONTH(tanggal) ', $bulan);
+        return $this->db->get()->result();
     }
 
     public function getData()
@@ -93,7 +129,7 @@ class Pemesanan_tiket extends CI_Model
     {
         $product = $this->getById($id);
         $filename = explode(".", $product->bukti_bayar)[0];
-        return array_map('unlink', glob(FCPATH . "bill_of_payment/$filename.*"));
+        return array_map('unlink', glob(FCPATH . "../bill_of_payment/$filename.*"));
     }
     function delete($id)
     {

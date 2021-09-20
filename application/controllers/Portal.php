@@ -224,7 +224,9 @@ class Portal extends CI_Controller
                 }
             } else {
                 $data['kode_tiket']  = 'T-O' . $this->session->userdata('username') . $this->input->post('jml_tiket') . '-' . $this->input->post('tanggal');
+                $data['jenis_pemesanan']     = 'Online Melalui Aplikasi';
                 $data['tanggal']     = htmlspecialchars($this->input->post('tanggal'));
+                $data['jumlah_bayar']   = 5000;
                 $data['jml_tiket']   = htmlspecialchars($this->input->post('jml_tiket'));
                 $data['id_rekening'] = htmlspecialchars($this->input->post('id_rekening'));
                 $data['create_date'] = date('Y-m-d H:i:s');

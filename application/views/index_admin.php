@@ -120,6 +120,8 @@
     <script src="<?php echo base_url() ?>assets_admin/js/matrix.popover.js"></script>
     <script src="<?php echo base_url() ?>assets_admin/js/jquery.dataTables.min.js"></script>
     <script src="<?php echo base_url() ?>assets_admin/js/matrix.tables.js"></script>
+
+
     <script type="text/javascript">
         // This function is called from the pop-up menus to transfer to
         // a different page. Ignore if the value returned is a null string:

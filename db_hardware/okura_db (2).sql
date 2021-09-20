@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 08, 2021 at 05:05 PM
+-- Generation Time: Sep 20, 2021 at 08:39 PM
 -- Server version: 10.4.21-MariaDB
 -- PHP Version: 7.4.23
 
@@ -35,6 +35,14 @@ CREATE TABLE `contact` (
   `whatsapp` text NOT NULL,
   `keterangan` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `contact`
+--
+
+INSERT INTO `contact` (`id`, `no_hp`, `instagram`, `facebook`, `whatsapp`, `keterangan`) VALUES
+(2, '082288383066', 'asdasd', 'adasd', 'asdasd', 'dadasda'),
+(3, '082390091029', 'asda', 'asdasd', 'adasda', 'adasd');
 
 -- --------------------------------------------------------
 
@@ -86,12 +94,15 @@ CREATE TABLE `gambar` (
 CREATE TABLE `pemesanan_tiket` (
   `id` int(11) NOT NULL,
   `kode_tiket` text NOT NULL,
+  `jenis_pemesanan` text NOT NULL,
   `tanggal` date NOT NULL,
   `jml_tiket` int(11) NOT NULL,
+  `jumlah_bayar` int(11) NOT NULL,
   `id_rekening` int(11) NOT NULL,
   `status` int(11) NOT NULL DEFAULT 0,
   `feedback` int(11) NOT NULL,
   `bukti_bayar` text NOT NULL,
+  `jenis_akun` text NOT NULL,
   `create_date` datetime NOT NULL,
   `username` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -100,9 +111,9 @@ CREATE TABLE `pemesanan_tiket` (
 -- Dumping data for table `pemesanan_tiket`
 --
 
-INSERT INTO `pemesanan_tiket` (`id`, `kode_tiket`, `tanggal`, `jml_tiket`, `id_rekening`, `status`, `feedback`, `bukti_bayar`, `create_date`, `username`) VALUES
-(1, 'T-Ofitra1231-2021-09-08', '2021-09-07', 1, 1, 1, 1, 'struk.jpg', '2021-09-08 21:54:13', 'fitra123'),
-(2, 'T-Ofitra1232-2021-09-08', '2021-09-08', 2, 1, 1, 0, 'struk.jpg', '2021-09-08 21:58:23', 'fitra123');
+INSERT INTO `pemesanan_tiket` (`id`, `kode_tiket`, `jenis_pemesanan`, `tanggal`, `jml_tiket`, `jumlah_bayar`, `id_rekening`, `status`, `feedback`, `bukti_bayar`, `jenis_akun`, `create_date`, `username`) VALUES
+(14, 'Adm-Oadmin_okura1-2021-09-21', 'Offline melalui admin taman', '2021-09-21', 4, 20000, 2, 1, 0, '', 'admin', '2021-09-21 00:55:50', 'admin_okura'),
+(15, 'Adm-Oadmin_okura4-2021-09-22', 'Offline melalui admin taman', '2021-09-22', 4, 20000, 2, 1, 0, '', 'admin', '2021-09-21 00:55:40', 'admin_okura');
 
 -- --------------------------------------------------------
 
@@ -161,7 +172,8 @@ CREATE TABLE `rating` (
 --
 
 INSERT INTO `rating` (`id`, `kategori`, `komentar`, `id_pemesanan`) VALUES
-(2, 'baik', 'terbaik lah', 1);
+(2, 'baik', 'terbaik lah', 1),
+(3, 'baik', 'Berak aja kok bayar ya...', 2);
 
 -- --------------------------------------------------------
 
@@ -181,7 +193,8 @@ CREATE TABLE `rekening` (
 --
 
 INSERT INTO `rekening` (`id`, `nama`, `no_rekening`, `jenis_bank`) VALUES
-(1, 'fitra', '061901034544508', 'BRI');
+(1, 'fitra', '061901034544508', 'BRI'),
+(2, 'Pembayaran Offline', '-', 'Transaksi Offline');
 
 -- --------------------------------------------------------
 
@@ -232,8 +245,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `oauth_provider`, `oauth_uid`, `first_name`, `last_name`, `username`, `password`, `email`, `phone_number`, `address`, `gender`, `locale`, `picture`, `link`, `role`, `created`, `modified`, `block_status`, `online_status`, `time_online`, `time_offline`, `id_unit`) VALUES
-(42, '', '', 'First', 'Administrator', 'admin_okura', '0192023a7bbd73250516f069df18b500', '', '081562442811', 'Jalan Dr. Setia Budhi No. 57, Rintis, Lima Puluh, Kota Pekanbaru, Riau (28141)', NULL, NULL, NULL, '', 'administrator', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 'offline', '2021-09-08 14:59:52', '2021-09-08 14:59:52', ''),
-(49, '', '', 'Admin', 'Office', 'office123', '34abc02a6df39facbf57b09fc68bb256', '', '081199223344', 'Jalan Dr. Setia Budhi No. 57, Rintis, Lima Puluh, Kota Pekanbaru, Riau (28141)', NULL, NULL, NULL, '', 'office', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 'online', '2020-08-02 03:51:33', '2020-08-02 03:51:33', 'U-001');
+(42, '', '', 'First', 'Administrator', 'admin_okura', '0192023a7bbd73250516f069df18b500', '', '081562442811', 'Jalan Dr. Setia Budhi No. 57, Rintis, Lima Puluh, Kota Pekanbaru, Riau (28141)', NULL, NULL, NULL, '', 'administrator', '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0, 'online', '2021-09-20 18:17:48', '2021-09-20 18:17:48', '');
 
 --
 -- Indexes for dumped tables
@@ -313,7 +325,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `contact`
 --
 ALTER TABLE `contact`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `denah`
@@ -337,7 +349,7 @@ ALTER TABLE `gambar`
 -- AUTO_INCREMENT for table `pemesanan_tiket`
 --
 ALTER TABLE `pemesanan_tiket`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `pengunjung`
@@ -355,13 +367,13 @@ ALTER TABLE `promosi`
 -- AUTO_INCREMENT for table `rating`
 --
 ALTER TABLE `rating`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `rekening`
 --
 ALTER TABLE `rekening`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sejarah`

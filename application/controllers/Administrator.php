@@ -27,6 +27,10 @@ class Administrator extends CI_Controller
             $view['active_home'] = 'active';
             $view['title']       = 'Beranda';
             $view['pageName']    = 'home';
+            $view['countPengunjung'] = $this->Pengunjung->countPengunjung();
+            $view['countTransaksiDiterima'] = $this->Pemesanan_tiket->countTransaksi(1);
+            $view['countTransaksiDitolak'] = $this->Pemesanan_tiket->countTransaksi(2);
+            $view['visualisasiPemasukan'] = $this->Pemesanan_tiket->visualisasiPemasukan();
         }
         $this->load->view('index_admin', $view);
     }
@@ -48,6 +52,8 @@ class Administrator extends CI_Controller
             $view['active_pemesananTiket'] = 'active';
             $view['title']                 = 'Pemesanan Tiket';
             $view['pageName']              = 'pemesananTiket';
+            $view['dataRekening']   = $this->Rekening->getData();
+            $view['dataPemesanan']  = $this->Pemesanan_tiket->getData();
             if ($param == 'getAllData') {
                 $dt    = $this->Pemesanan_tiket->getAllData();
                 $start = $this->input->post('start');
@@ -57,15 +63,89 @@ class Administrator extends CI_Controller
                     $th1 = '<center>' . ++$start . '</center>';
                     $th2 = '<center><button class="btn btn-mini btn-info">' . $row->username . '</button></center>';
                     $th3 = $row->kode_tiket;
-                    $th4 = tgl_indo($row->tanggal);
-                    $th5 = '<center>' . $row->jml_tiket . '</center>';
-                    $th6 = $row->status == 0 ? '<center>' . get_btn_verifikasi1('verifikasi("' . $id . '")', 'unverifikasi("' . $id . '")') . '</center>' : ($row->status == 1 ? '<div class="label label-mini bg-green">Telah diverifikasi</div>' : 'Pesanan ditolak');
-                    $th7 = empty($row->bukti_bayar) ? '<p style="color:black; text-align:center; background-color:red;">Bukti belum diupload !</p>' : '<img src="../bill_of_payment/' . $row->bukti_bayar . '" height="150px" width="150px">';
-                    // $th8 = get_btn_delete('hapus("' . $id . '")');
-                    $data[] = gathered_data(array($th1, $th2, $th3, $th4, $th5, $th6, $th7));
+                    $th4 = $row->jenis_pemesanan;
+                    $th5 = tgl_indo($row->tanggal);
+                    $th6 = '<center>' . $row->jml_tiket . '</center>';
+                    $th7 = $row->status == 0 ? '<center>' . get_btn_verifikasi1('verifikasi("' . $id . '")', 'unverifikasi("' . $id . '")') . '</center>' : ($row->status == 1 ? '<div class="label label-mini bg-green">Telah diverifikasi</div>' : 'Pesanan ditolak');
+                    if (!empty($row->jenis_akun == 'admin')) {
+                        $th8 =  '<center><p class="icon-ok" style="color:black; text-align:center; "></p><br>
+                        <small>Tidak perlu bukti upload !</small>
+                        </center>';
+                    } else {
+                        $th8 = empty($row->bukti_bayar) ? '<p style="color:black; text-align:center; background-color:red;color:white;">Bukti belum diupload !</p>'  : '<img src="../bill_of_payment/' . $row->bukti_bayar . '" height="150px" width="150px">';
+                    }
+                    $th9 = get_btn_group1('ubah("' . $id . '")', 'hapus("' . $id . '")');
+                    $data[] = gathered_data(array($th1, $th2, $th3, $th4, $th5, $th6, $th7, $th8, $th9));
                 }
                 $dt['data'] = $data;
                 echo json_encode($dt);
+                die;
+            } else if ($param == 'addData') {
+                $this->form_validation->set_rules("tanggal", "Tanggal", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("jml_tiket", "Jumlah Tiket", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("id_rekening", "Bank Tujuan", "trim|required", array('required' => '{field} Wajib diisi !'));
+
+                $this->form_validation->set_error_delimiters('<small id="text-error" style="color:red;">*', '</small>');
+                if ($this->form_validation->run() == FALSE) {
+                    $result = array('status' => 'error', 'msg' => 'Terdapat formulir yang masih kosong atau belum benar!');
+                    foreach ($_POST as $key => $value) {
+                        $result['messages'][$key] = form_error($key);
+                    }
+                } else {
+                    $data['kode_tiket']  = 'Adm-O' . $this->session->userdata('username') . $this->input->post('jml_tiket') . '-' . $this->input->post('tanggal');
+                    $data['jenis_pemesanan']     = 'Offline melalui admin taman';
+                    $data['tanggal']     = htmlspecialchars($this->input->post('tanggal'));
+                    $data['jumlah_bayar']   = (5000 * $this->input->post('jml_tiket'));
+                    $data['jml_tiket']   = htmlspecialchars($this->input->post('jml_tiket'));
+                    $data['id_rekening'] = htmlspecialchars($this->input->post('id_rekening'));
+                    $data['jenis_akun'] = 'admin';
+                    $data['create_date'] = date('Y-m-d H:i:s');
+                    $data['username']    = $this->session->userdata('username');
+
+                    $result['messages'] = '';
+
+                    $result = array('status' => 'success', 'msg' => 'Data berhasil dikirimkan');
+                    $this->Pemesanan_tiket->addData($data);
+                }
+                $csrf    = array(
+                    'token' => $this->security->get_csrf_hash()
+                );
+                echo json_encode(array('result' => $result, 'csrf' => $csrf));
+                die;
+            } else if ($param == 'getById') {
+                $data = $this->Pemesanan_tiket->getById($id);
+                echo json_encode(array('data' => $data));
+                die;
+            } else if ($param == 'update') {
+                $this->form_validation->set_rules("tanggal", "Tanggal", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("jml_tiket", "Jumlah Tiket", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("id_rekening", "Bank Tujuan", "trim|required", array('required' => '{field} Wajib diisi !'));
+
+                $this->form_validation->set_error_delimiters('<small id="text-error" style="color:red;">*', '</small>');
+                if ($this->form_validation->run() == FALSE) {
+                    $result = array('status' => 'error', 'msg' => 'Data yang anda isi belum benar !');
+                    foreach ($_POST as $key => $value) {
+                        $result['messages'][$key] = form_error($key);
+                    }
+                } else {
+                    $aidi = $this->input->post('id');
+                    $data['kode_tiket']  = htmlspecialchars($this->input->post('kode_tiket'));
+                    $data['jenis_pemesanan']     = htmlspecialchars($this->input->post('jenis_pemesanan'));
+                    $data['tanggal']     = htmlspecialchars($this->input->post('tanggal'));
+                    $data['jumlah_bayar']   = (5000 * $this->input->post('jml_tiket'));
+                    $data['jml_tiket']   = htmlspecialchars($this->input->post('jml_tiket'));
+                    $data['id_rekening'] = htmlspecialchars($this->input->post('id_rekening'));
+                    $data['jenis_akun'] = 'admin';
+                    $data['create_date'] = date('Y-m-d H:i:s');
+                    $data['username']    = $this->session->userdata('username');
+                    $result['messages']    = '';
+                    $result        = array('status' => 'success', 'msg' => 'Data Berhasil diubah');
+                    $this->Pemesanan_tiket->update($aidi, $data);
+                }
+                $csrf = array(
+                    'token' => $this->security->get_csrf_hash()
+                );
+                echo json_encode(array('result' => $result, 'csrf' => $csrf));
                 die;
             } else if ($param == 'delete') {
                 $this->Pemesanan_tiket->delete($id);
@@ -76,14 +156,14 @@ class Administrator extends CI_Controller
                 $data['status']   = 1;
                 $result['messages'] = '';
                 $this->Pemesanan_tiket->update($id, $data);
-                $result = array('status' => 'success', 'msg' => 'Data Berhasil diubah');
+                $result = array('status' => 'success', 'msg' => 'Berhasil Verifikasi');
                 echo json_encode(array('result' => $result));
                 die;
             } else if ($param == 'unverify') {
                 $data['status']   = 2;
                 $result['messages'] = '';
                 $this->Pemesanan_tiket->update($id, $data);
-                $result = array('status' => 'success', 'msg' => 'Data Berhasil diubah');
+                $result = array('status' => 'success', 'msg' => 'Berhasil Menolak Verifikasi');
                 echo json_encode(array('result' => $result));
                 die;
             }
@@ -780,6 +860,110 @@ class Administrator extends CI_Controller
             $view['active_rekening'] = 'active';
             $view['title']          = 'Rekening';
             $view['pageName']       = 'rekening';
+            if ($param == 'getAllData') {
+                $dt    = $this->Rekening->getAllData();
+                $start = $this->input->post('start');
+                $data  = array();
+                foreach ($dt['data'] as $row) {
+                    $id  = $row->id;
+                    $th1 = '<center>' . ++$start . '</center>';
+                    $th2 = $row->nama;
+                    $th3 = $row->no_rekening;
+                    $th4 = $row->jenis_bank;
+                    $th5 = get_btn_group1('ubah("' . $id . '")', 'hapus("' . $id . '")');
+                    $data[]    = gathered_data(array($th1, $th2, $th3, $th4, $th5));
+                }
+                $dt['data'] = $data;
+                echo json_encode($dt);
+                die;
+            } else if ($param == 'addData') {
+                $this->form_validation->set_rules("nama", "Nama", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("no_rekening", "No Rekening", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("jenis_bank", "Jenis Bank", "trim|required", array('required' => '{field} Wajib diisi !'));
+
+                $this->form_validation->set_error_delimiters('<small id="text-error" style="color:red;">*', '</small>');
+                if ($this->form_validation->run() == FALSE) {
+                    $result = array('status' => 'error', 'msg' => 'Data yang anda isi belum benar !');
+                    foreach ($_POST as $key => $value) {
+                        $result['messages'][$key] = form_error($key);
+                    }
+                } else {
+                    $data['nama']       = htmlspecialchars($this->input->post('nama'));
+                    $data['no_rekening']  = $this->input->post('no_rekening');
+                    $data['jenis_bank']   = htmlspecialchars($this->input->post('jenis_bank'));
+                    $result['messages']    = '';
+                    $result        = array('status' => 'success', 'msg' => 'Data Berhasil diubah');
+                    $this->Rekening->addData($data);
+                }
+                $csrf = array(
+                    'token' => $this->security->get_csrf_hash()
+                );
+                echo json_encode(array('result' => $result, 'csrf' => $csrf));
+                die;
+            } else if ($param == 'getById') {
+                $data = $this->Rekening->getById($id);
+                echo json_encode(array('data' => $data));
+                die;
+            } else if ($param == 'update') {
+                $this->form_validation->set_rules("nama", "Nama", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("no_rekening", "No Rekening", "trim|required", array('required' => '{field} Wajib diisi !'));
+                $this->form_validation->set_rules("jenis_bank", "Jenis Bank", "trim|required", array('required' => '{field} Wajib diisi !'));
+
+                $this->form_validation->set_error_delimiters('<small id="text-error" style="color:red;">*', '</small>');
+                if ($this->form_validation->run() == FALSE) {
+                    $result = array('status' => 'error', 'msg' => 'Data yang anda isi belum benar !');
+                    foreach ($_POST as $key => $value) {
+                        $result['messages'][$key] = form_error($key);
+                    }
+                } else {
+                    $aidi = $this->input->post('id');
+                    $data['nama']       = htmlspecialchars($this->input->post('nama'));
+                    $data['no_rekening']  = $this->input->post('no_rekening');
+                    $data['jenis_bank']   = htmlspecialchars($this->input->post('jenis_bank'));
+                    $result['messages']    = '';
+                    $result        = array('status' => 'success', 'msg' => 'Data Berhasil diubah');
+                    $this->Rekening->update($aidi, $data);
+                }
+                $csrf = array(
+                    'token' => $this->security->get_csrf_hash()
+                );
+                echo json_encode(array('result' => $result, 'csrf' => $csrf));
+                die;
+            } else if ($param == 'delete') {
+                $this->Rekening->delete($id);
+                $result = array('status' => 'success', 'msg' => 'Data berhasil dihapus !');
+                echo json_encode(array('result' => $result));
+                die;
+            }
+        }
+        $this->load->view('index_admin', $view);
+    }
+
+    public function keuntungan($param = '', $id = '')
+    {
+        $userOnById = $this->User->getOnlineUserById($this->session->userdata('id'));
+        $temp = $this->User->getuserById($this->session->userdata('id'));
+        if (!$this->session->userdata('loggedIn')) {
+            $this->session->set_flashdata('result_login', 'Silahkan Log in untuk mengakses sistem !');
+            redirect('/auth/');
+        } else if ($temp[0]->online_status != "online") {
+            $this->session->set_flashdata('result_login', 'Silahkan Log in kembali untuk mengakses sistem !');
+            redirect('auth/force_logout');
+        } else if (count_time_since(strtotime($userOnById[0]->time_online)) > 7100) {
+            $this->session->set_flashdata('result_login', 'Silahkan Log in kembali untuk mengakses sistem !');
+            redirect('auth/force_logout');
+        } else {
+            $view['active_keuntungan'] = 'active';
+            $view['title']          = 'Keuntungan';
+            $view['pageName']       = 'keuntungan';
+
+            $bulan = $this->input->post('bulan');
+            if (empty($bulan)) {
+                $bulan = date('m');
+            }
+            $view['bulan'] = $bulan;
+            $view['getDataByBulan'] = $this->Pemesanan_tiket->getAllData1($bulan);
+            $view['total'] = $this->Pemesanan_tiket->total($bulan);
             if ($param == 'getAllData') {
                 $dt    = $this->Rekening->getAllData();
                 $start = $this->input->post('start');
