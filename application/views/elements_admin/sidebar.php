@@ -49,6 +49,8 @@
                     echo $active_keuntungan;
                   }  ?>"><a href="<?php echo base_url('administrator/keuntungan') ?>"><i class="icon icon-money"></i>
                   <span>Laporan Pemasukan</span></a></li>
+          <li><a href="#" style="background-color: red;" onclick="logout()"><i class="icon icon-key"></i>
+                  <span>Logout</span></a></li>
       </ul>
   </div>
   <!--sidebar-menu-->

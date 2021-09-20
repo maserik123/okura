@@ -22,14 +22,16 @@
         <div class="control-group">
             <div class="controls">
                 <div class="main_input_box">
-                    <span class="add-on bg_lg"><i class="icon-user"> </i></span><input type="text" name="username" id="username" placeholder="Username" />
+                    <span class="add-on bg_lg"><i class="icon-user"> </i></span><input type="text" name="username"
+                        id="username" placeholder="Username" />
                 </div>
             </div>
         </div>
         <div class="control-group">
             <div class="controls">
                 <div class="main_input_box">
-                    <span class="add-on bg_ly"><i class="icon-lock"></i></span><input type="password" name="password" id="password" placeholder="Password" />
+                    <span class="add-on bg_ly"><i class="icon-lock"></i></span><input type="password" name="password"
+                        id="password" placeholder="Password" />
                 </div>
             </div>
         </div>
@@ -37,12 +39,13 @@
             <?php
             $message = $this->session->flashdata('result_login');
             if ($message) { ?>
-                <div style="color: red;"><?php echo $message; ?></div>
+            <div style="color: red;"><?php echo $message; ?></div>
             <?php } ?>
         </label>
         <div class="form-actions">
-            <span class="pull-left"><a href="#" class="flip-link btn btn-info" id="to-recover">Lost password?</a></span>
-            <span class="pull-right"><button type="submit" class="btn btn-success" /> Login</a></span>
+            <!-- <span class="pull-left"><a href="#" class="flip-link btn btn-info" id="to-recover">Lost password?</a></span> -->
+            <span class="pull-right"><button type="submit" class="btn btn-success" />
+                Masuk Disini </a></span>
         </div>
         <?php echo form_close() ?>
     </div>
